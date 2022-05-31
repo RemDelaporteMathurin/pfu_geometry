@@ -25,17 +25,17 @@ class PFU:
 
         self.tube, self.water = self.make_tube()
 
-        locations = np.arange(0, 870, step=thickness_mb + gap)
+        locations = np.arange(0, self.L, step=thickness_mb + gap)
 
         self.monoblocks = [
             Monoblock(
                 thickness=thickness_mb,
-                height=25,
-                width=23,
+                height=2.5,
+                width=2.3,
                 cucrzr_inner_radius=cucrzr_inner_radius,
                 cucrzr_thickness=cucrzr_thickness,
-                w_thickness=5,
-                cu_thickness=1,
+                w_thickness=.5,
+                cu_thickness=.1,
                 gap=gap,
                 location=(0, y_loc, 0),
                 normal=(0, 1, 0),
@@ -83,13 +83,13 @@ class PFU:
 
 
 my_pfu = PFU(
-    L=870,
-    cucrzr_inner_radius=6,
-    cucrzr_thickness=1.5,
-    target_radius=250,
+    L=87.0,
+    cucrzr_inner_radius=.6,
+    cucrzr_thickness=.15,
+    target_radius=25.0,
     angle=80,
-    gap=1,
-    thickness_mb=12,
+    gap=.1,
+    thickness_mb=1.2,
 )
 
 if __name__ == "__main__":
