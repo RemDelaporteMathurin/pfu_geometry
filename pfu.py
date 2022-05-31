@@ -92,15 +92,15 @@ my_pfu = PFU(
     thickness_mb=12,
 )
 
+if __name__ == "__main__":
+    # attach everything
+    pfu = my_pfu.tube
 
-# attach everything
-pfu = my_pfu.tube
+    for mb in my_pfu.monoblocks:
+        pfu = pfu.union(mb.tungsten).union(mb.copper)
 
-for mb in my_pfu.monoblocks:
-    pfu = pfu.union(mb.tungsten).union(mb.copper)
+    exporters.export(pfu, "pfu.stl")
 
-exporters.export(pfu, "pfu.stl")
-
-# exporters.export(my_pfu.tube, "tube.stl")
-# exporters.export(my_mb.tungsten, "w.stl")
-# exporters.export(my_mb.copper, "copper.stl")
+    # exporters.export(my_pfu.tube, "tube.stl")
+    # exporters.export(my_mb.tungsten, "w.stl")
+    # exporters.export(my_mb.copper, "copper.stl")
