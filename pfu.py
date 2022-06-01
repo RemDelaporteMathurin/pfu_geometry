@@ -15,6 +15,7 @@ class PFU:
         angle,
         thickness_mb,
         gap,
+        nb_mbs_on_curve=27,
     ) -> None:
 
         self.L = L
@@ -24,6 +25,10 @@ class PFU:
         self.angle = angle
         self.thickness_mb = thickness_mb
         self.gap = gap
+
+        self.nb_mbs_on_curve = (
+            nb_mbs_on_curve  # ideally this should be computed from gap
+        )
 
     def make_solid(self):
         self.tube, self.water = self.make_tube()
@@ -65,7 +70,9 @@ class PFU:
         ]
         # monoblocks on curve
         monoblocks_curve = []
-        thetas = np.linspace(np.pi * 0.999, (180 - self.angle) * np.pi / 180, num=27)
+        thetas = np.linspace(
+            np.pi * 0.999, (180 - self.angle) * np.pi / 180, num=self.nb_mbs_on_curve
+        )
 
         for theta in thetas:
             x_loc = self.target_radius + self.target_radius * np.cos(theta)
