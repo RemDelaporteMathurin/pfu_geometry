@@ -1,25 +1,35 @@
 from paramak import Reactor, Shape, Plasma, ITERtypeDivertor
 
-from pfu import my_pfu
+from target import Target
 
 import os
 
+
+my_target = Target(
+    nb_pfus=5,
+    toroidal_gap=0.2,
+    L=87.0,
+    cucrzr_inner_radius=0.6,
+    cucrzr_thickness=0.15,
+    target_radius=25.0,
+    angle=80,
+    gap=0.1,
+    thickness_mb=1.2,
+)
+
+
 water = Shape(name="water")
-water.solid = my_pfu.water
+water.solid = my_target.water
 
 
 tungsten = Shape(name="tungsten")
-tungsten.solid = my_pfu.monoblocks[0].tungsten
-for mb in my_pfu.monoblocks[1:]:
-    tungsten.solid = tungsten.solid.union(mb.tungsten)
+tungsten.solid = my_target.tungsten
 
 copper = Shape(name="copper")
-copper.solid = my_pfu.monoblocks[0].copper
-for mb in my_pfu.monoblocks[1:]:
-    tungsten.solid = tungsten.solid.union(mb.copper)
+copper.solid = my_target.copper
 
 cucrzr = Shape(name="cucrzr")
-cucrzr.solid = my_pfu.tube
+cucrzr.solid = my_target.tube
 
 
 # rotate pfu around X axis
@@ -46,10 +56,10 @@ cucrzr.solid = water.rotate_solid(cucrzr.solid)
 # translate pfu
 import cadquery as cq
 
-water.solid = water.solid.translate(cq.Vector(561, 0, -367 - my_pfu.L))
-tungsten.solid = tungsten.solid.translate(cq.Vector(561, 0, -367 - my_pfu.L))
-copper.solid = copper.solid.translate(cq.Vector(561, 0, -367 - my_pfu.L))
-cucrzr.solid = cucrzr.solid.translate(cq.Vector(561, 0, -367 - my_pfu.L))
+water.solid = water.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
+tungsten.solid = tungsten.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
+copper.solid = copper.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
+cucrzr.solid = cucrzr.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
 
 
 plasma = Plasma(
@@ -59,10 +69,10 @@ plasma = Plasma(
     triangularity=0.33,
     vertical_displacement=5.7e1,
     configuration="single-null",
-    rotation_angle=10,
+    rotation_angle=3,
 )
 
-divertor_model = ITERtypeDivertor(rotation_angle=10)
+divertor_model = ITERtypeDivertor(rotation_angle=3)
 
 my_reactor = Reactor([water, tungsten, copper, cucrzr, plasma, divertor_model])
 

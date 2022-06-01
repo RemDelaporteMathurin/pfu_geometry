@@ -25,11 +25,20 @@ class PFU:
         self.thickness_mb = thickness_mb
         self.gap = gap
 
+    def make_solid(self):
         self.tube, self.water = self.make_tube()
 
         self.monoblocks = self.make_monoblocks()
 
         self.cut_tube_from_mbs()
+
+        self.tungsten = self.monoblocks[0].tungsten
+        for mb in self.monoblocks[1:]:
+            self.tungsten = self.tungsten.union(mb.tungsten)
+
+        self.copper = self.monoblocks[0].copper
+        for mb in self.monoblocks[1:]:
+            self.copper = self.copper.union(mb.copper)
 
     def make_monoblocks(self):
         # monoblocks on straight line
@@ -122,17 +131,17 @@ class PFU:
             # exporters.export(mb.copper, "monoblocks/copper_{}.stl".format(i))
 
 
-my_pfu = PFU(
-    L=87.0,
-    cucrzr_inner_radius=0.6,
-    cucrzr_thickness=0.15,
-    target_radius=25.0,
-    angle=80,
-    gap=0.1,
-    thickness_mb=1.2,
-)
-
 if __name__ == "__main__":
+    my_pfu = PFU(
+        L=87.0,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        target_radius=25.0,
+        angle=80,
+        gap=0.1,
+        thickness_mb=1.2,
+    )
+    my_pfu.make_solid()
     # attach everything
 
     print("attaching monoblocks")
