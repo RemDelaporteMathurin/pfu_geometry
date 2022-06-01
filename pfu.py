@@ -7,28 +7,18 @@ import numpy as np
 
 class PFU:
     def __init__(
-        self,
-        L,
-        cucrzr_inner_radius,
-        cucrzr_thickness,
-        target_radius,
-        angle,
-        thickness_mb,
-        gap,
-        nb_mbs_on_curve=27,
+        self, L, target_radius, angle, nb_mbs_on_curve=27, **monoblocks_args
     ) -> None:
 
         self.L = L
-        self.cucrzr_inner_radius = cucrzr_inner_radius
-        self.cucrzr_thickness = cucrzr_thickness
         self.target_radius = target_radius
         self.angle = angle
-        self.thickness_mb = thickness_mb
-        self.gap = gap
 
         self.nb_mbs_on_curve = (
             nb_mbs_on_curve  # ideally this should be computed from gap
         )
+
+        self.monoblocks_args = monoblocks_args
 
     def make_solid(self):
         self.tube, self.water = self.make_tube()
@@ -50,18 +40,15 @@ class PFU:
         if self.L == 0:
             locations = []
         else:
-            locations = np.arange(0, self.L, step=self.thickness_mb + self.gap)
+            locations = np.arange(
+                0,
+                self.L,
+                step=self.monoblocks_args["thickness"] + self.monoblocks_args["gap"],
+            )
 
         monoblocks_straight = [
             Monoblock(
-                thickness=self.thickness_mb,
-                height=2.5,
-                width=2.3,
-                cucrzr_inner_radius=self.cucrzr_inner_radius,
-                cucrzr_thickness=self.cucrzr_thickness,
-                w_thickness=0.5,
-                cu_thickness=0.1,
-                gap=self.gap,
+                **self.monoblocks_args,
                 location=(0, y_loc, 0),
                 normal=(0, 1, 0),
                 hollow=False,
@@ -83,14 +70,14 @@ class PFU:
 
             monoblocks_curve.append(
                 Monoblock(
-                    thickness=self.thickness_mb,
+                    thickness=self.monoblocks_args["thickness"],
                     height=2.5,
                     width=2.3,
-                    cucrzr_inner_radius=self.cucrzr_inner_radius,
-                    cucrzr_thickness=self.cucrzr_thickness,
+                    cucrzr_inner_radius=self.monoblocks_args["cucrzr_inner_radius"],
+                    cucrzr_thickness=self.monoblocks_args["cucrzr_thickness"],
                     w_thickness=0.5,
                     cu_thickness=0.1,
-                    gap=self.gap,
+                    gap=self.monoblocks_args["gap"],
                     location=(x_loc, y_loc, 0),
                     normal=(x_normal, y_normal, 0),
                     xDir=(0, 0, 1),
@@ -104,7 +91,7 @@ class PFU:
         water_2 = (
             cq.Workplane("ZX")
             .workplane(offset=self.L)
-            .circle(self.cucrzr_inner_radius)
+            .circle(self.monoblocks_args["cucrzr_inner_radius"])
             .revolve(
                 self.angle,
                 (1, self.target_radius, 0),
@@ -113,7 +100,9 @@ class PFU:
         )
         if self.L != 0:
             water_1 = (
-                cq.Workplane("ZX").circle(self.cucrzr_inner_radius).extrude(self.L)
+                cq.Workplane("ZX")
+                .circle(self.monoblocks_args["cucrzr_inner_radius"])
+                .extrude(self.L)
             )
             water = water_1.union(water_2)
         else:
@@ -122,7 +111,10 @@ class PFU:
         tube_2 = (
             cq.Workplane("ZX")
             .workplane(offset=self.L)
-            .circle(self.cucrzr_inner_radius + self.cucrzr_thickness)
+            .circle(
+                self.monoblocks_args["cucrzr_inner_radius"]
+                + self.monoblocks_args["cucrzr_thickness"]
+            )
             .revolve(
                 self.angle,
                 (1, self.target_radius, 0),
@@ -133,7 +125,10 @@ class PFU:
         if self.L != 0:
             tube_1 = (
                 cq.Workplane("ZX")
-                .circle(self.cucrzr_inner_radius + self.cucrzr_thickness)
+                .circle(
+                    self.monoblocks_args["cucrzr_inner_radius"]
+                    + self.monoblocks_args["cucrzr_thickness"]
+                )
                 .extrude(self.L)
             )
 
@@ -153,12 +148,16 @@ class PFU:
 if __name__ == "__main__":
     my_pfu = PFU(
         L=87.0,
-        cucrzr_inner_radius=0.6,
-        cucrzr_thickness=0.15,
         target_radius=25.0,
         angle=80,
         gap=0.1,
-        thickness_mb=1.2,
+        thickness=1.2,
+        height=2.5,
+        width=2.3,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        w_thickness=0.5,
+        cu_thickness=0.1,
     )
     my_pfu.make_solid()
     # attach everything
