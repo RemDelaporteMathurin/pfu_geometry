@@ -42,7 +42,10 @@ class PFU:
 
     def make_monoblocks(self):
         # monoblocks on straight line
-        locations = np.arange(0, self.L, step=self.thickness_mb + self.gap)
+        if self.L == 0:
+            locations = []
+        else:
+            locations = np.arange(0, self.L, step=self.thickness_mb + self.gap)
 
         monoblocks_straight = [
             Monoblock(
@@ -91,7 +94,6 @@ class PFU:
 
     def make_tube(self):
 
-        water_1 = cq.Workplane("ZX").circle(self.cucrzr_inner_radius).extrude(self.L)
         water_2 = (
             cq.Workplane("ZX")
             .workplane(offset=self.L)
@@ -102,14 +104,14 @@ class PFU:
                 (-1, self.target_radius, 0),
             )
         )
+        if self.L != 0:
+            water_1 = (
+                cq.Workplane("ZX").circle(self.cucrzr_inner_radius).extrude(self.L)
+            )
+            water = water_1.union(water_2)
+        else:
+            water = water_2
 
-        water = water_1.union(water_2)
-
-        tube_1 = (
-            cq.Workplane("ZX")
-            .circle(self.cucrzr_inner_radius + self.cucrzr_thickness)
-            .extrude(self.L)
-        )
         tube_2 = (
             cq.Workplane("ZX")
             .workplane(offset=self.L)
@@ -120,7 +122,17 @@ class PFU:
                 (-1, self.target_radius, 0),
             )
         )
-        tube_total = tube_1.union(tube_2).cut(water)
+
+        if self.L != 0:
+            tube_1 = (
+                cq.Workplane("ZX")
+                .circle(self.cucrzr_inner_radius + self.cucrzr_thickness)
+                .extrude(self.L)
+            )
+
+            tube_total = tube_1.union(tube_2).cut(water)
+        else:
+            tube_total = tube_2
 
         return tube_total, water
 
