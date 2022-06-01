@@ -41,23 +41,25 @@ water.solid = water.rotate_solid(water.solid)
 tungsten.rotation_axis = "X"
 tungsten.workplane = "ZX"
 tungsten.azimuth_placement_angle = 90
-tungsten.solid = water.rotate_solid(tungsten.solid)
+tungsten.solid = tungsten.rotate_solid(tungsten.solid)
 
 copper.rotation_axis = "X"
 copper.workplane = "ZX"
 copper.azimuth_placement_angle = 90
-copper.solid = water.rotate_solid(copper.solid)
+copper.solid = copper.rotate_solid(copper.solid)
 
 cucrzr.rotation_axis = "X"
 cucrzr.workplane = "ZX"
 cucrzr.azimuth_placement_angle = 90
-cucrzr.solid = water.rotate_solid(cucrzr.solid)
+cucrzr.solid = cucrzr.rotate_solid(cucrzr.solid)
 
 # translate pfu
 import cadquery as cq
 
 water.solid = water.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
-tungsten.solid = tungsten.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
+tungsten.solid = tungsten.solid.translate(
+    cq.Vector(561, 0, -367 - my_target.pfu_args["L"])
+)
 copper.solid = copper.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
 cucrzr.solid = cucrzr.solid.translate(cq.Vector(561, 0, -367 - my_target.pfu_args["L"]))
 
