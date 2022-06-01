@@ -30,8 +30,10 @@ class Target:
         for pfu in self.pfus[1:]:
             self.water = self.water.union(pfu.water)
 
+        print("done")
+
     def make_pfus(self):
-        mb_width = 2.3
+        mb_width = self.pfu_args["width"]
         pfu_base = PFU(**self.pfu_args)
         pfu_base.make_solid()
         pfus = []

@@ -31,13 +31,17 @@ def make_dome():
         5,
         0.2,
         L=0,
-        cucrzr_inner_radius=0.6,
-        cucrzr_thickness=0.15,
         target_radius=radius,
         angle=angle * 180 / np.pi,
         gap=0.1,
-        thickness_mb=1.2,
         nb_mbs_on_curve=54,
+        thickness=1.2,
+        height=2.5,
+        width=2.3,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        w_thickness=0.5,
+        cu_thickness=0.1,
     )
 
     dome_tungsten = Shape()
@@ -96,12 +100,16 @@ def make_outer_target():
         nb_pfus=5,
         toroidal_gap=0.2,
         L=87.0,
-        cucrzr_inner_radius=0.6,
-        cucrzr_thickness=0.15,
         target_radius=25.0,
         angle=80,
         gap=0.1,
-        thickness_mb=1.2,
+        thickness=1.2,
+        height=2.5,
+        width=2.3,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        w_thickness=0.5,
+        cu_thickness=0.1,
     )
     water = Shape(name="water")
     water.solid = my_target.water
@@ -137,7 +145,6 @@ def make_outer_target():
     cucrzr.solid = cucrzr.rotate_solid(cucrzr.solid)
 
     # translate pfu
-    import cadquery as cq
 
     water.solid = water.solid.translate(
         cq.Vector(561, 0, -367 - my_target.pfu_args["L"])
@@ -155,6 +162,90 @@ def make_outer_target():
     return tungsten.solid, copper.solid, cucrzr.solid, water.solid
 
 
+def make_inner_target():
+    my_target = Target(
+        nb_pfus=5,
+        toroidal_gap=0.2,
+        target_radius=50,
+        angle=90,
+        L=87.0,
+        gap=0.1,
+        thickness=1.2,
+        height=2.5,
+        width=2.3,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        w_thickness=0.5,
+        cu_thickness=0.1,
+        nb_mbs_on_curve=60,
+    )
+
+    my_target.tungsten = my_target.tungsten.rotate((0, 1, 0), (0, -1, 0), 180)
+    my_target.water = my_target.water.rotate((0, 1, 0), (0, -1, 0), 180)
+    my_target.copper = my_target.copper.rotate((0, 1, 0), (0, -1, 0), 180)
+    my_target.tube = my_target.tube.rotate((0, 1, 0), (0, -1, 0), 180)
+    water = Shape(name="water")
+    water.solid = my_target.water
+
+    tungsten = Shape(name="tungsten")
+    tungsten.solid = my_target.tungsten
+
+    copper = Shape(name="copper")
+    copper.solid = my_target.copper
+
+    cucrzr = Shape(name="cucrzr")
+    cucrzr.solid = my_target.tube
+
+    # rotate pfu around X axis
+    water.rotation_axis = "X"
+    water.workplane = "ZX"
+    water.azimuth_placement_angle = 90
+    water.solid = water.rotate_solid(water.solid)
+
+    tungsten.rotation_axis = "X"
+    tungsten.workplane = "ZX"
+    tungsten.azimuth_placement_angle = 90
+    tungsten.solid = tungsten.rotate_solid(tungsten.solid)
+
+    copper.rotation_axis = "X"
+    copper.workplane = "ZX"
+    copper.azimuth_placement_angle = 90
+    copper.solid = copper.rotate_solid(copper.solid)
+
+    cucrzr.rotation_axis = "X"
+    cucrzr.workplane = "ZX"
+    cucrzr.azimuth_placement_angle = 90
+    cucrzr.solid = cucrzr.rotate_solid(cucrzr.solid)
+
+    # translate pfu
+
+    y_translation = (my_target.nb_pfus - 1) * (
+        my_target.pfu_args["width"] + my_target.toroidal_gap
+    )
+
+    water.solid = water.solid.translate(
+        cq.Vector(450, y_translation, -300 - my_target.pfu_args["L"])
+    )
+    tungsten.solid = tungsten.solid.translate(
+        cq.Vector(450, y_translation, -300 - my_target.pfu_args["L"])
+    )
+    copper.solid = copper.solid.translate(
+        cq.Vector(450, y_translation, -300 - my_target.pfu_args["L"])
+    )
+    cucrzr.solid = cucrzr.solid.translate(
+        cq.Vector(450, y_translation, -300 - my_target.pfu_args["L"])
+    )
+
+    # rotate around Y axis
+    tungsten.solid = tungsten.solid.rotate((450, 1, -300), (450, -1, -300), -27)
+    copper.solid = copper.solid.rotate((450, 1, -300), (450, -1, -300), -27)
+    cucrzr.solid = cucrzr.solid.rotate((450, 1, -300), (450, -1, -300), -27)
+    water.solid = water.solid.rotate((450, 1, -300), (450, -1, -300), -27)
+
+    return tungsten.solid, copper.solid, cucrzr.solid, water.solid
+
+
+tungsten_inner, copper_inner, cucrzr_inner, water_inner = make_inner_target()
 tungsten_outer, copper_outer, cucrzr_outer, water_outer = make_outer_target()
 tungsten_dome, copper_dome, cucrzr_dome, water_dome = make_dome()
 
@@ -163,10 +254,11 @@ copper = Shape(name="copper")
 cucrzr = Shape(name="cucrzr")
 water = Shape(name="water")
 
-tungsten.solid = tungsten_outer.union(tungsten_dome)
-copper.solid = copper_outer.union(copper_dome)
-cucrzr.solid = cucrzr_outer.union(cucrzr_dome)
-water.solid = water_outer.union(water_dome)
+tungsten.solid = tungsten_outer.union(tungsten_inner).union(tungsten_dome)
+copper.solid = copper_outer.union(copper_inner).union(copper_dome)
+cucrzr.solid = cucrzr_outer.union(cucrzr_inner).union(cucrzr_dome)
+water.solid = water_outer.union(water_inner).union(water_dome)
+
 
 plasma = Plasma(
     major_radius=6.2e2,
@@ -180,8 +272,9 @@ plasma = Plasma(
 
 divertor_model = ITERtypeDivertor(rotation_angle=3)
 
-my_reactor = Reactor([tungsten, copper, cucrzr, water, plasma, divertor_model])
+my_reactor = Reactor([tungsten, copper, cucrzr, water])
 
+print('exporting reactor')
 my_reactor.export_stl("reactor.stl")
 # my_reactor.export_dagmc_h5m("dagmc.h5m", exclude=["plasma"])
 
