@@ -83,11 +83,31 @@ class Monoblock:
 
         tungsten = (
             cq.Workplane(self.plane)
-            .box(self.width, self.height, self.thickness)
             .translate(translation)
+            .box(self.width, self.height, self.thickness)
             .cut(copper)
             .cut(cucrzr)
             .cut(inner_cylinder)
         )
         self.tungsten = tungsten
         self.copper = copper
+        self.cucrzr = cucrzr
+
+
+if __name__ == "__main__":
+    my_mb = Monoblock(
+        thickness=1.2,
+        height=2.5,
+        width=2.3,
+        cucrzr_inner_radius=0.6,
+        cucrzr_thickness=0.15,
+        w_thickness=0.5,
+        cu_thickness=0.1,
+        gap=0.1,
+        location=(0, 0, 0),
+        normal=(1, 1, 0),
+    )
+
+    cq.exporters.export(my_mb.tungsten, "w.stl")
+    cq.exporters.export(my_mb.copper, "copper.stl")
+    cq.exporters.export(my_mb.cucrzr, "cucrzr.stl")
