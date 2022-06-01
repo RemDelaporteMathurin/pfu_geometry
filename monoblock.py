@@ -17,8 +17,10 @@ class Monoblock:
         cu_thickness,
         w_thickness,
         gap,
+        hollow=True,
         location=(0, 0, 0),
         normal=(0, 0, 1),
+        xDir=None,
     ) -> None:
         """_summary_
         Args:
@@ -42,8 +44,9 @@ class Monoblock:
         self.gap = gap
         self.location = location
         self.normal = normal
-
-        self.plane = cq.Plane(self.location, normal=self.normal)
+        self.xDir = xDir
+        self.hollow = hollow
+        self.plane = cq.Plane(self.location, normal=self.normal, xDir=self.xDir)
         self.make_solid()
 
     def make_solid(self):
@@ -62,15 +65,12 @@ class Monoblock:
             .cut(inner_cylinder)
         )
 
-        copper = (
-            cq.Workplane(self.plane)
-            .cylinder(
-                self.thickness,
-                self.cucrzr_inner_radius + self.cucrzr_thickness + self.cu_thickness,
-            )
-            .cut(cucrzr)
-            .cut(inner_cylinder)
+        copper = cq.Workplane(self.plane).cylinder(
+            self.thickness,
+            self.cucrzr_inner_radius + self.cucrzr_thickness + self.cu_thickness,
         )
+        if self.hollow:
+            copper = copper.cut(cucrzr).cut(inner_cylinder)
 
         translation_factor = (
             -self.height / 2
@@ -79,16 +79,16 @@ class Monoblock:
             + self.cu_thickness
             + self.w_thickness
         )
-        translation = cq.Vector(-translation_factor, 0, 0)
 
         tungsten = (
             cq.Workplane(self.plane)
-            .translate(translation)
+            .move(0, -translation_factor)
             .box(self.width, self.height, self.thickness)
             .cut(copper)
             .cut(cucrzr)
             .cut(inner_cylinder)
         )
+
         self.tungsten = tungsten
         self.copper = copper
         self.cucrzr = cucrzr
@@ -106,6 +106,7 @@ if __name__ == "__main__":
         gap=0.1,
         location=(0, 0, 0),
         normal=(1, 1, 0),
+        hollow=False,
     )
 
     cq.exporters.export(my_mb.tungsten, "w.stl")
